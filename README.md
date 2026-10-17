@@ -1,7 +1,7 @@
 
-,git clone https://github.com/snaidermadilus-debug/seve_drive3.git,
+     git clone https://github.com/snaidermadilus-debug/seve_drive3.git
 
-'cd seve_drive3,
+     cd seve_drive3
 
 
 # Cloud Studio Pro - Drive Pessoal & Wiki Assistant
@@ -35,7 +35,3 @@ Sistema completo de armazenamento em nuvem pessoal com autenticação segura, is
    - **Correção**: Porta dinâmica via `os.environ.get('PORT', 5001)` e `MAX_CONTENT_LENGTH` de 64 MB com página de erro amigável.
 
 ---
-
-## git clone https://github.com/snaidermadilus-debug/seve_drive3.git
-
-## cd seve_drive3
