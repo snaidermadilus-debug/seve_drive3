@@ -30,4 +30,6 @@ Sistema completo de armazenamento em nuvem pessoal com autenticação segura, is
 
 ---
 
-## 
+## git clone https://github.com/snaidermadilus-debug/seve_drive3.git
+
+## cd seve_drive3
