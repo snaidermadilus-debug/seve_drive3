@@ -14,9 +14,7 @@ Sistema completo de armazenamento em nuvem pessoal com autenticação segura, is
    - **Problema**: O HTML continha chamadas para `abrirLightbox(...)` e `mostrarModalExclusao(...)`, mas nenhuma dessas funções ou os modais HTML correspondentes existiam no código, gerando erros no console (`ReferenceError: abrirLightbox is not defined`).
    - **Correção**: Implementados os modais completos no HTML com botões de fechar, download direto, atalho pela tecla ESC, e as funções JavaScript correspondentes.
 
-3. **Vulnerabilidade de Path Traversal**:
-   - **Problema**: `caminho_solicitado.startswith(pasta_usuario)` era vulnerável quando nomes de usuários compartilhavam prefixos similares.
-   - **Correção**: Validação estrita com `os.path.commonpath([pasta_usuario, caminho_solicitado]) == pasta_usuario`.
+3
 
 4. **Nomes de Arquivo em Português com Acentos**:
    - **Problema**: O `secure_filename` padrão removia caracteres acentuados (ex: `relatório.pdf` virava `relatrio.pdf` ou gerava strings vazias).
