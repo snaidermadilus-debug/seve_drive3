@@ -1,3 +1,9 @@
+
+,git clone https://github.com/snaidermadilus-debug/seve_drive3.git,
+
+'cd seve_drive3,
+
+
 # Cloud Studio Pro - Drive Pessoal & Wiki Assistant
 
 Sistema completo de armazenamento em nuvem pessoal com autenticação segura, isolamento por usuário, gerenciador de arquivos, pré-visualizador de imagens em lightbox, confirmação de exclusão em modal e **Wiki Assistant Pro** integrado.
