@@ -1,0 +1,6 @@
+{
+  "name": "Cloud Studio Pro - Drive & Wiki Assistant",
+  "description": "Armazenamento em nuvem seguro com gerenciador de arquivos, pré-visualizador multimídia, Wiki Assistant inteligente e exportação para GitHub.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Cloud Studio Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="painel-login">
+        <div class="auth-icon-header" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <h2>Criar Conta</h2>
+        <p>Cadastre seu espaço privativo no Cloud Studio</p>
+
+        {% if erro %}
+        <div class="erro">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ erro }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/cadastro" method="POST" class="auth-form">
+            <div class="input-icon-group">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" name="usuario" placeholder="Escolha um nome de usuário (mín. 3 letras)" required autocomplete="username" minlength="3" autofocus>
+            </div>
+            <div class="input-icon-group">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" name="senha" placeholder="Escolha uma senha segura (mín. 4 caracteres)" required autocomplete="new-password" minlength="4">
+            </div>
+            <button type="submit" class="btn-verde auth-submit">
+                <i class="fa-solid fa-check"></i> Cadastrar Conta
+            </button>
+        </form>
+
+        <div class="link-alternativo">
+            Já possui uma conta? <a href="/login">Fazer login</a>
+        </div>
+    </div>
+</body>
+</html>

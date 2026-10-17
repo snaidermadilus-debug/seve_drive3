@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Studio - Painel de Arquivos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="painel">
+        <!-- CABEÇALHO SUPERIOR -->
+        <header class="topo-header">
+            <div class="brand-area">
+                <div class="brand-icon"><i class="fa-solid fa-cloud"></i></div>
+                <div>
+                    <h2>Cloud Studio Pro</h2>
+                    <span class="brand-subtitle">Drive Pessoal &amp; Wiki Assistant</span>
+                </div>
+            </div>
+            <div class="user-area">
+                <span class="user-badge"><i class="fa-solid fa-user-check"></i> {{ usuario_logado }}</span>
+                <a href="/logout" class="btn-sair" title="Encerrar sessão"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+            </div>
+        </header>
+
+        {% if mensagem %}
+        <div class="alerta" id="msg-alerta">
+            <span><i class="fa-solid fa-circle-info"></i> {{ mensagem }}</span>
+            <button class="btn-fechar-alerta" onclick="fecharAlerta()">&times;</button>
+        </div>
+        {% endif %}
+
+        <!-- PAINEL WIKI ASSISTANT PRO -->
+        <section class="card-acao wiki-card">
+            <div class="card-titulo-area">
+                <h4><i class="fa-solid fa-brain" style="color: #a855f7;"></i> Wiki Assistant Pro</h4>
+                <span class="card-dica">Consulte enciclopédias e resumos rápidos diretamente no seu workspace</span>
+            </div>
+            <div class="wiki-input-group">
+                <input type="text" id="wiki-query" placeholder="Ex: O que é Cloud Computing? Inteligência Artificial..." onkeydown="if(event.key==='Enter') pesquisarWiki()">
+                <button type="button" id="btn-wiki" onclick="pesquisarWiki()"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+            </div>
+            <div id="wiki-resultado" class="wiki-box" style="display: none;"></div>
+        </section>
+
+        <!-- BARRA DE LOCALIZAÇÃO / BREADCRUMB -->
+        <nav class="caminho-box">
+            <div class="breadcrumb-links">
+                <a href="/"><i class="fa-solid fa-house"></i> Raiz</a>
+                {% if subpath %}
+                    <span class="sep">/</span>
+                    <span class="caminho-atual">{{ subpath }}</span>
+                {% endif %}
+            </div>
+            {% if subpath %}
+                <a href="/?subpath={{ caminho_pai }}" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Nível Acima</a>
+            {% endif %}
+        </nav>
+
+        <!-- GRID DE AÇÕES RÁPIDAS: UPLOAD E NOVA PASTA -->
+        <div class="acoes-grid">
+            <div class="card-acao">
+                <h4><i class="fa-solid fa-file-arrow-up"></i> Enviar Arquivo</h4>
+                <form action="/enviar?subpath={{ subpath }}" method="POST" enctype="multipart/form-data" id="form-upload">
+                    <div class="input-file-container" id="drop-zone">
+                        <label for="arquivo-input" class="input-file-trigger" id="texto-botao-arquivo">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 22px; display:block; margin-bottom: 6px;"></i>
+                            <span>Clique ou arraste um arquivo aqui</span>
+                        </label>
+                        <input type="file" id="arquivo-input" name="arquivo" required onchange="atualizarNome(this)">
+                    </div>
+                    <div id="file-name" class="file-name-info"></div>
+                    <button type="submit" id="btn-submit-upload" class="btn-primary"><i class="fa-solid fa-upload"></i> Fazer Upload</button>
+                </form>
+            </div>
+
+            <div class="card-acao">
+                <h4><i class="fa-solid fa-folder-plus"></i> Criar Nova Pasta</h4>
+                <form action="/criar_pasta?subpath={{ subpath }}" method="POST">
+                    <div style="margin-bottom: 8px;">
+                        <input type="text" name="nome_pasta" placeholder="Nome da pasta (ex: Documentos, Fotos...)" required maxlength="60">
+                    </div>
+                    <button type="submit" class="btn-verde"><i class="fa-solid fa-plus"></i> Criar Pasta</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- LISTAGEM DE ARQUIVOS E PASTAS -->
+        <main class="card-acao">
+            <div class="lista-topo">
+                <h4><i class="fa-solid fa-folder-tree"></i> Arquivos no Diretório</h4>
+                <div class="itens-count">{{ itens|length }} item(ns)</div>
+            </div>
+
+            <div class="lista-container">
+                {% if itens %}
+                    {% for item in itens %}
+                        {% set caminho_completo = (subpath + '/' + item.nome) if subpath else item.nome %}
+                        <div class="item-card">
+                            {% if item.e_pasta %}
+                                <div class="item-info" onclick="window.location.href='/?subpath={{ caminho_completo }}'">
+                                    <div class="thumbnail folder-icon"><i class="fa-solid fa-folder"></i></div>
+                                    <div class="item-detalhes">
+                                        <span class="item-nome font-pasta">{{ item.nome }}</span>
+                                        <span class="item-meta">Pasta</span>
+                                    </div>
+                                </div>
+                            {% elif item.eh_imagem %}
+                                <div class="item-info" onclick="abrirLightbox('/ver/{{ caminho_completo }}', '/download/{{ caminho_completo }}', '{{ item.nome }}')">
+                                    <img src="/ver/{{ caminho_completo }}" class="thumbnail thumb-img" alt="preview" loading="lazy">
+                                    <div class="item-detalhes">
+                                        <span class="item-nome">{{ item.nome }}</span>
+                                        <span class="item-meta">{{ item.tamanho }} · Imagem</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="item-info" onclick="window.open('/ver/{{ caminho_completo }}', '_blank')">
+                                    <div class="thumbnail doc-icon">
+                                        {% if item.eh_texto %}
+                                            <i class="fa-solid fa-file-code"></i>
+                                        {% else %}
+                                            <i class="fa-solid fa-file"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="item-detalhes">
+                                        <span class="item-nome">{{ item.nome }}</span>
+                                        <span class="item-meta">{{ item.tamanho }} · Arquivo</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="botoes-acao">
+                                {% if not item.e_pasta %}
+                                    <a href="/download/{{ caminho_completo }}" class="btn-acao btn-download" title="Baixar arquivo"><i class="fa-solid fa-download"></i></a>
+                                {% endif %}
+                                <button type="button" class="btn-acao btn-apagar" title="Excluir item" onclick="mostrarModalExclusao('/excluir?item={{ caminho_completo }}&subpath={{ subpath }}', '{{ item.nome }}')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="vazio">
+                        <i class="fa-solid fa-folder-open vazio-icon"></i>
+                        <p style="font-size: 15px; color: #a1a1aa; margin-bottom: 4px;">Esta pasta está vazia</p>
+                        <span style="font-size: 13px; color: #71717a;">Envie um arquivo ou crie uma subpasta acima para começar.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL LIGHTBOX DE IMAGEM (RESOLVE O ERRO DE ABRIRLIGHTBOX NÃO DEFINIDO) -->
+    <div id="lightbox-modal" class="modal-overlay" style="display: none;" onclick="fecharLightbox(event)">
+        <div class="lightbox-conteudo" onclick="event.stopPropagation()">
+            <div class="lightbox-header">
+                <span id="lightbox-titulo" class="lightbox-title">Visualizar Imagem</span>
+                <div class="lightbox-actions">
+                    <a id="lightbox-download" href="#" class="btn-acao btn-download" download title="Baixar original"><i class="fa-solid fa-download"></i> Baixar</a>
+                    <button class="btn-fechar" onclick="fecharLightboxModal()">&times;</button>
+                </div>
+            </div>
+            <div class="lightbox-body">
+                <img id="lightbox-img" src="" alt="Imagem ampliada">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (RESOLVE O ERRO DE MOSTRARMODALEXCLUSAO NÃO DEFINIDO) -->
+    <div id="modal-exclusao" class="modal-overlay" style="display: none;" onclick="fecharModalExclusao(event)">
+        <div class="modal-caixa" onclick="event.stopPropagation()">
+            <div class="modal-icon-aviso"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3>Confirmar Exclusão</h3>
+            <p>Você tem certeza de que deseja apagar o item <strong id="modal-item-nome" style="color: #f87171;"></strong>?</p>
+            <p class="modal-aviso-sub">Esta ação é permanente e não poderá ser desfeita.</p>
+            <div class="modal-botoes">
+                <button type="button" class="btn-cancelar" onclick="fecharModalExclusaoModal()">Cancelar</button>
+                <a id="modal-btn-confirmar" href="#" class="btn-confirmar-exclusao"><i class="fa-solid fa-trash"></i> Sim, Apagar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS INTEGRADOS -->
+    <script>
+        // 1. Pesquisa Wiki Assistant
+        async function pesquisarWiki() {
+            const queryInput = document.getElementById('wiki-query');
+            const query = queryInput.value.trim();
+            const resDiv = document.getElementById('wiki-resultado');
+            const btn = document.getElementById('btn-wiki');
+            
+            if (!query) {
+                queryInput.focus();
+                return;
+            }
+
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = '<div style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-spinner fa-spin" style="color:#a855f7;"></i><span>Consultando a Wikipédia e fontes acadêmicas...</span></div>';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/wiki_search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ consulta: query })
+                });
+
+                const data = await response.json();
+                
+                if (data.erro) {
+                    resDiv.innerHTML = `
+                        <div style="color:#f87171; display:flex; align-items:flex-start; gap:8px;">
+                            <i class="fa-solid fa-circle-exclamation" style="margin-top:2px;"></i>
+                            <div><strong>Não encontrado:</strong> ${data.resposta}</div>
+                        </div>`;
+                } else {
+                    resDiv.innerHTML = `
+                        <div class="wiki-resposta">
+                            <div class="wiki-fonte-tag"><i class="fa-solid fa-book-open"></i> Fonte: ${data.fonte}</div>
+                            <p style="margin-top:8px; line-height: 1.6; color:#f4f4f5;">${data.resposta}</p>
+                        </div>`;
+                }
+            } catch (e) {
+                resDiv.innerHTML = '<span style="color:#f87171;"><i class="fa-solid fa-triangle-exclamation"></i> Ocorreu uma falha ao comunicar com o servidor. Tente novamente.</span>';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 2. Manipulação de Arquivo selecionado no upload
+        function atualizarNome(input) {
+            if (input.files && input.files[0]) {
+                const f = input.files[0];
+                const sizeMb = (f.size / (1024 * 1024)).toFixed(2);
+                document.getElementById('file-name').innerHTML = `<i class="fa-solid fa-check-circle" style="color:#10b981;"></i> Arquivo: <strong>${f.name}</strong> (${sizeMb} MB)`;
+                document.getElementById('texto-botao-arquivo').innerHTML = '<i class="fa-solid fa-file-circle-check" style="font-size:22px; display:block; margin-bottom:6px; color:#10b981;"></i><span>Arquivo selecionado pronto para envio!</span>';
+            }
+        }
+
+        // 3. Funções do Lightbox (Corrigindo o bug original)
+        function abrirLightbox(url, downloadUrl, nome) {
+            const modal = document.getElementById('lightbox-modal');
+            const img = document.getElementById('lightbox-img');
+            const titulo = document.getElementById('lightbox-titulo');
+            const btnDownload = document.getElementById('lightbox-download');
+            
+            img.src = url;
+            titulo.textContent = nome || 'Visualização da Imagem';
+            btnDownload.href = downloadUrl;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharLightboxModal() {
+            const modal = document.getElementById('lightbox-modal');
+            modal.style.display = 'none';
+            document.getElementById('lightbox-img').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        function fecharLightbox(e) {
+            if (e.target.id === 'lightbox-modal') {
+                fecharLightboxModal();
+            }
+        }
+
+        // 4. Funções do Modal de Exclusão (Corrigindo o bug original)
+        function mostrarModalExclusao(urlExclusao, nomeItem) {
+            const modal = document.getElementById('modal-exclusao');
+            document.getElementById('modal-item-nome').textContent = nomeItem || 'este item';
+            document.getElementById('modal-btn-confirmar').href = urlExclusao;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalExclusaoModal() {
+            document.getElementById('modal-exclusao').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function fecharModalExclusao(e) {
+            if (e.target.id === 'modal-exclusao') {
+                fecharModalExclusaoModal();
+            }
+        }
+
+        // 5. Fechar alerta
+        function fecharAlerta() {
+            const a = document.getElementById('msg-alerta');
+            if (a) a.style.display = 'none';
+        }
+
+        // Fechar modais ao teclar ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fecharLightboxModal();
+                fecharModalExclusaoModal();
+            }
+        });
+
+        // Suporte a Arrastar e Soltar (Drag & Drop) na zona de upload
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('arquivo-input');
+
+        if (dropZone && fileInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.add('drag-hover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.remove('drag-hover');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    atualizarNome(fileInput);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
